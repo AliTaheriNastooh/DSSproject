@@ -266,7 +266,7 @@ async def addChannels(channelList):
 
 def init():
     config = configparser.ConfigParser()
-    path=currentPath+r'\telegram\teleConfig.ini'
+    path=currentPath+r'\teleConfig.ini'
     config.read(path)
     api_id=config.getint('Telegram','api_id')
     api_hash=config['Telegram']['api_hash']
@@ -275,13 +275,13 @@ def init():
 
 
 def fill_namad():
-    f = open(currentPath+r'\telegram\name.txt','r',encoding='utf-8')
+    f = open(currentPath+r'\name.txt','r',encoding='utf-8')
     namad=f.read()
     f.close()
     return namad.split('\n')
 
 def get_channel():
-    f = open(currentPath+r'\telegram\channel_list.txt','r',encoding='utf-8')
+    f = open(currentPath+r'\channel_list.txt','r',encoding='utf-8')
     namad=f.read()
     f.close()
     return namad.split('\n')
