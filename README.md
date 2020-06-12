@@ -1,4 +1,4 @@
-# DSS course project project
+# DSS course project
 
 firt go to https://my.telegram.org/ and login. then
 
