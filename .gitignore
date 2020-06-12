@@ -1,0 +1,6 @@
+anon.session
+*.jpg
+.vscode/
+*.mp4
+output.txt
+teleConfig.ini
