@@ -22,4 +22,4 @@ phone =
 username = 
 ```
 
-you should install [psycopg2](https://pypi.org/project/psycopg2/) and [telethon](https://docs.telethon.dev/en/latest/basic/installation.html)
+you should install [psycopg2](https://pypi.org/project/psycopg2/) and [telethon](https://docs.telethon.dev/en/latest/basic/installation.html) and [hazm](https://github.com/sobhe/hazm)
