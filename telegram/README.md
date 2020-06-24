@@ -1,10 +1,6 @@
 # DSS course project
 
-firt go to https://my.telegram.org/ and login. then
-
-API development tools
-
-enter your characteristics and get api_id and api hash then create teleConfig.ini file like this:
+first create teleConfig.ini file like this:
 
 
 ```
@@ -22,4 +18,10 @@ phone =
 username = 
 ```
 
-you should install [psycopg2](https://pypi.org/project/psycopg2/) and [telethon](https://docs.telethon.dev/en/latest/basic/installation.html)
+for run telegram crawler just run tele.py
+
+```
+python tele.py
+```
+
+your vpn should be activate
