@@ -1,7 +1,9 @@
 # DSS course project
 
 to run sahamyab crawler :
+
 1- cd sahamyab
+
 2-run this code
 
 
