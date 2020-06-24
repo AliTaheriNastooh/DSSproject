@@ -24,4 +24,4 @@ for run telegram crawler just run tele.py
 python tele.py
 ```
 
-your vpn should active
+your vpn should be activate
