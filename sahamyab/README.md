@@ -1,25 +1,12 @@
 # DSS course project
 
-firt go to https://my.telegram.org/ and login. then
-
-API development tools
-
-enter your characteristics and get api_id and api hash then create teleConfig.ini file like this:
+to run sahamyab crawler :
+1- cd sahamyab
+2-run this code
 
 
 ```
-[Telegram]
-api_id = 
-api_hash =  
-phone = 
-username = 
-
-[DEFAULT]
-ServerAliveInterval = 45
-api_id = 
-api_hash = 
-phone = 
-username = 
+scrapy crawl sahamyabComments -o data.json
 ```
 
-you should install [psycopg2](https://pypi.org/project/psycopg2/) and [telethon](https://docs.telethon.dev/en/latest/basic/installation.html)
+you should install [scrapy](https://docs.scrapy.org/en/latest/intro/install.html)
