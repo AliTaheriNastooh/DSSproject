@@ -68,6 +68,9 @@ def add_person_to_database(username,name,type,id):
     conn.commit()
     return id
 
+def updateLastMessageIdToPostgres(channelId, lastMessageId):
+    cur.execute("update channel set lastmessageid=%s where id= %s;",[lastMessageId,channelId])
+    conn.commit()
 
 def getLastMessageIdFromPostgres(channelId):
     cur.execute("SELECT * FROM channel where id=%s" ,[channelId])
@@ -207,9 +210,6 @@ def get_lastMessageId(channelId):
     lastMessageId = getLastMessageIdFromPostgres(channelId)
     return lastMessageId
 
-def updateLastMessageIdToPostgres(channelId, lastMessageId):
-    cur.execute("update channel set lastmessageid=%s where id= %s;",[lastMessageId,channelId])
-    conn.commit()
 
 async def updateLastMessage(channel):
     lastMessage = await client.get_messages(channel)

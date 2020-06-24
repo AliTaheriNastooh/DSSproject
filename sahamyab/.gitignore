@@ -1,0 +1,7 @@
+*.jpg
+*.json
+*.pyo
+*.pyc
+.idea
+scrapy.cfg
+SahamyabConfig.ini
