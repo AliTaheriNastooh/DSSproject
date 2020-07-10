@@ -8,6 +8,7 @@ import json
 import datetime
 import pytz
 import os
+import requests
 
 f=open('output.txt','w',encoding='utf-8')
 currentPath=os.path.abspath(os.getcwd())
@@ -18,7 +19,7 @@ def writeJsonOpject(jsonObject):
     f.write(',')
 def init_database():
     mhost='localhost'
-    mdatabase='telegram'
+    mdatabase='socialnetwork'
     muser='postgres'
     mpassword='aliali0321'
     conn = psycopg2.connect(host=mhost,database=mdatabase, user=muser, password=mpassword)
@@ -36,7 +37,7 @@ def add_person_channel_to_database(personId,channelId):
             }
         }
     }
-    writeJsonOpject(myJson)
+    #writeJsonOpject(myJson)
     cur.execute("INSERT INTO person_channel(person_id,channel_id) VALUES (%s,%s) ON CONFLICT DO NOTHING" ,(personId,channelId))
     conn.commit()
 
@@ -63,7 +64,7 @@ def add_person_to_database(username,name,type,id):
         name = name[0:29] if len(name)>30 else name
     if username != None:
         username = username[0:29] if len(username)>30 else username
-    writeJsonOpject(myJson)
+    #writeJsonOpject(myJson)
     cur.execute("INSERT INTO person(username,name,type,id) VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(username,name,type,id))
     conn.commit()
     return id
@@ -108,10 +109,28 @@ def add_channel_to_database(id=0,username='none',name='none',type='non',channel_
         print('error in add channel tot database')
         sys.exit('error in add channel tot database')
     conn.commit()
-    writeJsonOpject(myJson)
+    #writeJsonOpject(myJson)
     return id
 
+def callSentimentApi(url, data, tokenKey):
+    headers = {
+        'Content-Type': "application/json",
+        'Authorization': "Bearer " + tokenKey,
+        'Cache-Control': "no-cache"
+    }
+    response = requests.request("POST", url, data=data.encode("utf-8"), headers=headers)
+    return response.text
+def getMessageSentiment(content):
+    msg = '\"'+content+'\"'
+    return callSentimentApi(getSentimentUrl, msg, sentimentTokenKey)
 def add_message_to_database(user_id,channel_id,date,content,stock,image='non'):
+    messageSentiment = getMessageSentiment(content)
+    print(content)
+    print(messageSentiment)
+    f.write(content)
+    f.write(messageSentiment)
+    f.write('\n')
+    messageSentiment = int(messageSentiment)
     if(image=='non'):
         myJson={
             'insert':{
@@ -120,11 +139,12 @@ def add_message_to_database(user_id,channel_id,date,content,stock,image='non'):
                     'channel_id':channel_id,
                     'date':date,
                     'content':content,
+                    'sentiment':messageSentiment,
                     'stock':stock,
                 }
             }
         }  
-        cur.execute("INSERT INTO message(user_id,channel_id,date,content,stock) VALUES (%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(user_id,channel_id,date,content,stock,))
+        cur.execute("INSERT INTO message(user_id,channel_id,date,content,sentiment,stock) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(user_id,channel_id,date,content,messageSentiment,stock,))
     else:
         myJson={
             'insert':{
@@ -133,14 +153,15 @@ def add_message_to_database(user_id,channel_id,date,content,stock,image='non'):
                     'channel_id':channel_id,
                     'date':date,
                     'content':content,
+                    'sentiment':messageSentiment,
                     'stock':stock,
                     'image': 'has image' if image=='non' else 'hasnt'
                 }
             }
         } 
-        cur.execute("INSERT INTO message(user_id,channel_id,date,content,stock,image) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(user_id,channel_id,date,content,stock,image,))
+        cur.execute("INSERT INTO message(user_id,channel_id,date,content,sentiment,stock,image) VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(user_id,channel_id,date,content,messageSentiment,stock,image,))
     conn.commit()
-    writeJsonOpject(myJson)
+    #writeJsonOpject(myJson)
 
 async def add_groupMessage(message,stock,channelId,path='non'):
     senderId=message.from_id
@@ -296,6 +317,17 @@ async def setEventToGetMessages(channels):
         print(event.message.to_id.user_id)
         print(event)
 
+def initialSentimentApi():
+    baseUrl = "http://api.text-mining.ir/api/"
+    url = baseUrl + "Token/GetToken"
+    querystring = {"apikey":"b98f757b-8bc2-ea11-80ec-98ded002619b"}
+    response = requests.request("GET", url, params=querystring)
+    data = json.loads(response.text)
+    tokenKey = data['token']
+    return tokenKey
+
+sentimentTokenKey= initialSentimentApi()
+getSentimentUrl =  "http://api.text-mining.ir/api/SentimentAnalyzer/SentimentClassifier"
 api_hash,api_id=init()
 client = TelegramClient('anon', api_id, api_hash)
 stocks=fill_namad()
