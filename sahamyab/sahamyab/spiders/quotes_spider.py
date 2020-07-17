@@ -3,6 +3,7 @@ import json
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from scrapy.conf import settings
+import requests
 import psycopg2
 import time
 import os
@@ -25,6 +26,7 @@ class SahamyabCommentsSpider(scrapy.Spider):
     urlLogin = 'https://www.sahamyab.com/api/login'
     urlChangeToken = 'https://www.sahamyab.com/auth/realms/sahamyab/protocol/openid-connect/token'
     baseUrlImage='https://www.sahamyab.com/guest/image/generic/'
+    getSentimentUrl =  "http://api.text-mining.ir/api/SentimentAnalyzer/SentimentClassifier"
     normalizer = Normalizer()
     globalVersion=1
     sahamyabTwitChannelId = -1000
@@ -40,7 +42,16 @@ class SahamyabCommentsSpider(scrapy.Spider):
     username = ''
     password = ''
     state = 'twit'
+    sentimentTokenKey=None
 
+    def __init__(self):#delay between two consecutive requests
+        #self.download_delay = 1.5
+        self.state='twit'
+        self.conn,self.cur = self.init_database()
+        self.addSahamyabChannelToPostgres()
+        self.stocks=self.fill_namad()
+        self.sentimentTokenKey= self.initialSentimentApi()
+        
     def createJson(self,id,content,date,senderUsername,senderName,likeCount,parentId,image,version):
         myJson={
             'message':{
@@ -59,6 +70,28 @@ class SahamyabCommentsSpider(scrapy.Spider):
         #self.writeJsonOpject(myJson)
         #self.writeJsonOpjectToMongo(myJson)
 
+    def initialSentimentApi(self):
+        baseUrl = "http://api.text-mining.ir/api/"
+        url = baseUrl + "Token/GetToken"
+        querystring = {"apikey":"89894be1-f8c7-ea11-80ec-98ded002619b"}
+        response = requests.request("GET", url, params=querystring)
+        data = json.loads(response.text)
+        tokenKey = data['token']
+        return tokenKey
+
+    def callSentimentApi(self,url, data, tokenKey):
+        headers = {
+            'Content-Type': "application/json",
+            'Authorization': "Bearer " + tokenKey,
+            'Cache-Control': "no-cache"
+        }
+        response = requests.request("POST", url, data=data.encode("utf-8"), headers=headers)
+        return response.text
+
+    def getMessageSentiment(self,content):
+        msg = '\"'+content+'\"'
+        return self.callSentimentApi(self.getSentimentUrl, msg, self.sentimentTokenKey)   
+ 
     def updateLastMessageIdToPostgres(self,channelId, lastMessageId):
         debu.write('in updateEmesage , '+str(channelId)+' '+str(lastMessageId))
         self.cur.execute("update channel set lastmessageid=%s where id= %s;",[int(lastMessageId),int(channelId)])
@@ -70,7 +103,7 @@ class SahamyabCommentsSpider(scrapy.Spider):
     
     def init_database(self):
         mhost='localhost'
-        mdatabase='telegram'
+        mdatabase='socialnetwork'
         muser='postgres'
         mpassword='aliali0321'
         conn = psycopg2.connect(host=mhost,database=mdatabase, user=muser, password=mpassword)
@@ -112,13 +145,6 @@ class SahamyabCommentsSpider(scrapy.Spider):
         if lastMessageId == -1:
             self.addSahamyabChannelToPostgres()
         return lastMessageId
-
-    def __init__(self):#delay between two consecutive requests
-        #self.download_delay = 1.5
-        self.state='twit'
-        self.conn,self.cur = self.init_database()
-        self.addSahamyabChannelToPostgres()
-        self.stocks=self.fill_namad()
 
 
     def start_requests(self):#first request for collecting comments
@@ -194,8 +220,8 @@ class SahamyabCommentsSpider(scrapy.Spider):
         self.conn.commit()
 
 
-    def add_message_to_database(self,id,user_id,channel_id,date,content,stock):
-        self.cur.execute("INSERT INTO message(id,user_id,channel_id,date,content,stock) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(id,user_id,channel_id,date,content,stock,))
+    def add_message_to_database(self,id,user_id,channel_id,date,content,stock,sentiment):
+        self.cur.execute("INSERT INTO message(id,user_id,channel_id,date,content,sentiment,stock) VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING" ,(id,user_id,channel_id,date,content,sentiment,stock,))
         self.conn.commit()
 
     def parseImage(self, response):
@@ -269,6 +295,8 @@ class SahamyabCommentsSpider(scrapy.Spider):
                     if  index== -1:
                         continue
                     f.write(str(index)+' -- '+self.stocks[index]+'\n')
+                    messageSentiment = self.getMessageSentiment(onequote['content'])
+                    messageSentiment = int(messageSentiment)
                     likeCount= '0'
                     parentId= '0'
                     imageUid = ''
@@ -285,7 +313,7 @@ class SahamyabCommentsSpider(scrapy.Spider):
                     channelId = self.sahamyabChartChannelId if response.meta['chart'] else self.sahamyabTwitChannelId
                     self.add_person_to_database(onequote['senderUsername'],onequote['senderName'],'sah',userId)
                     self.add_person_channel_to_database(userId,channelId)
-                    self.add_message_to_database(onequote['id'],userId,channelId,onequote['sendTime'],onequote['content'],self.stocks[index])
+                    self.add_message_to_database(onequote['id'],userId,channelId,onequote['sendTime'],onequote['content'],self.stocks[index],messageSentiment)
                     if flagDownloadImage:
                         requestImage=scrapy.Request(url=self.baseUrlImage+imageUid, callback=self.parseImage)
                         requestImage.meta['requestCount']=0
