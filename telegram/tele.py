@@ -125,11 +125,6 @@ def getMessageSentiment(content):
     return callSentimentApi(getSentimentUrl, msg, sentimentTokenKey)
 def add_message_to_database(user_id,channel_id,date,content,stock,image='non'):
     messageSentiment = getMessageSentiment(content)
-    print(content)
-    print(messageSentiment)
-    f.write(content)
-    f.write(messageSentiment)
-    f.write('\n')
     messageSentiment = int(messageSentiment)
     if(image=='non'):
         myJson={
