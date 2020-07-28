@@ -73,7 +73,7 @@ class SahamyabCommentsSpider(scrapy.Spider):
     def initialSentimentApi(self):
         baseUrl = "http://api.text-mining.ir/api/"
         url = baseUrl + "Token/GetToken"
-        querystring = {"apikey":"89894be1-f8c7-ea11-80ec-98ded002619b"}
+        querystring = {"apikey":"517f8818-d0d0-ea11-80ec-98ded002619b"}
         response = requests.request("GET", url, params=querystring)
         data = json.loads(response.text)
         tokenKey = data['token']

@@ -315,7 +315,7 @@ async def setEventToGetMessages(channels):
 def initialSentimentApi():
     baseUrl = "http://api.text-mining.ir/api/"
     url = baseUrl + "Token/GetToken"
-    querystring = {"apikey":"b98f757b-8bc2-ea11-80ec-98ded002619b"}
+    querystring = {"apikey":"517f8818-d0d0-ea11-80ec-98ded002619b"}
     response = requests.request("GET", url, params=querystring)
     data = json.loads(response.text)
     tokenKey = data['token']
