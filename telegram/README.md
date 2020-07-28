@@ -1,6 +1,6 @@
 # DSS course project
 
-first create teleConfig.ini file like this:
+first create teleConfig.ini file like this and put it next to the tele.py :
 
 
 ```
@@ -24,4 +24,4 @@ for run telegram crawler just run tele.py
 python tele.py
 ```
 
-your vpn should be activate
+you should activate your vpn.  
