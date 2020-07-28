@@ -1,8 +1,6 @@
 # DSS course project
 
-firt go to https://my.telegram.org/ and login. then
-
-API development tools
+firt go to https://my.telegram.org/ and login. then > API development tools
 
 enter your characteristics and get api_id and api hash .
 
